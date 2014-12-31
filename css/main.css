@@ -1,0 +1,24 @@
+body, html {
+  height: 100%;
+}
+
+.container {
+  display: table;
+  height: 100%;
+}
+
+.file-row {
+  display: table-cell;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.file-form {
+  padding-top: 10px;
+  display: inline-block;
+}
+
+.bordered {
+  border: 1px dotted black;
+  border-radius: 5px;
+}
