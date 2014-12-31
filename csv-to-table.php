@@ -6,6 +6,7 @@ $file_size_limit = 30000;
 $file_types_accept = [
   'csv' => 'text/plain'
 ];
+$columns_we_like = ['lat', 'long', 'ipaddress'];
 
 $new_file_path = sprintf('uploaded_csv/%s.%s', sha1_file($uploaded_files['tmp_name']), 'csv');
 
@@ -118,7 +119,7 @@ if (file_exists($new_file_path)) {
 //upload cleaned csv
 
 function filter_columns($ary) {
-  $columns_we_like = ['lat', 'long', 'ipaddress'];
+  global $columns_we_like;
   $cleaned_up_ary = [];
 
   foreach($ary as $key => $val){
