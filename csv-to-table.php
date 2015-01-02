@@ -49,6 +49,11 @@ try {
     throw new RuntimeException('Invalid file format.');
   }
 
+  //check if file already exists
+  /*if (file_exists($new_file_path)) {
+    throw new RuntimeException('file already exists');
+  }*/
+
   //save file locally
   if (!move_uploaded_file(
       $uploaded_files['tmp_name'],
@@ -60,6 +65,7 @@ try {
 } catch (RuntimeException $e) {
 
   echo $e->getMessage();
+  exit;
 
 }
 
@@ -102,21 +108,25 @@ if ($fp = fopen($new_file_path, 'w')) {
   fclose($fp);
 }
 
-if (file_exists($new_file_path)) {
-  header('Content-Description: File Transfer');
-  header('Content-Type: application/octet-stream');
-  header('Content-Disposition: attachment; filename='.basename($new_file_path));
-  header('Expires: 0');
-  header('Cache-Control: must-revalidate');
-  header('Pragma: public');
-  header('Content-Length: ' . filesize($new_file_path));
-  readfile($new_file_path);
+$sql = "COPY submittedcsv(";
+$sql = return_query_cols(array_keys($csv_ready_array[0]), $sql);
+$sql .= " FROM '" . realpath($new_file_path) . "' DELIMITERS ',' CSV";
+
+$dbconn = pg_connect("dbname=spacial");
+
+if(!$dbconn) {
+  echo 'not connecting to postgresql';
   exit;
 }
 
-//connect to db
+$result = pg_query($dbconn, $sql);
 
-//upload cleaned csv
+if(!$result) {
+  echo 'query prob <br>' . $sql . '<br><br>Path:<br>' . realpath($new_file_path);
+  exit;
+}
+
+echo 'looks like the following query worked <br>' . $sql;
 
 function filter_columns($ary) {
   global $columns_we_like;
@@ -129,6 +139,20 @@ function filter_columns($ary) {
   }
 
   return $cleaned_up_ary;
+}
+
+function return_query_cols ($ary, $sql_str) {
+  $last_key = count($ary) - 1;
+  foreach($ary as $key => $val) {
+
+    if($last_key != $key){
+      $sql_str .= $val . ', ';
+    } else {
+      $sql_str .= $val;
+    }
+  }
+
+  return $sql_str . ')';
 }
 
 ini_set('auto_detect_line_endings',FALSE);
